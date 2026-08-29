@@ -1,0 +1,17 @@
+# Environment and secrets
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Large/raw GIS datasets
+data/raw/
+data/population/
+data/shapefiles/
+
+# PostgreSQL local database/backup
+postgres_backup/
+
+# Optional: large/generated data
+# data/elevation/

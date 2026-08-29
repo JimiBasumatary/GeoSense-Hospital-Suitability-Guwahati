@@ -1,0 +1,12 @@
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+CREATE TABLE IF NOT EXISTS locations (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    geom GEOMETRY(Point, 4326),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS locations_geom_idx
+ON locations
+USING GIST (geom);

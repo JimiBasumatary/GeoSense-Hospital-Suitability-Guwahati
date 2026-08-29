@@ -1,0 +1,9 @@
+feature,mean_abs_shap
+dist_road_m,0.169053
+buildings_within_250m,0.083648
+dominant_landuse_area_m2,0.081291
+building_area_m2,0.064285
+pois_within_500m,0.033216
+dominant_landuse_forest,0.020841
+dominant_landuse_No mapped land use,0.014277
+dominant_landuse_residential,0.005286
