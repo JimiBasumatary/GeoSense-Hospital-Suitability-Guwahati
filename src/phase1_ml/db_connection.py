@@ -1,23 +1,44 @@
-import psycopg2
+import os
 
-DB_CONFIG = {
-    "host": "127.0.0.1",
-    "port": 5432,
-    "database": "geosense_db",
-    "user": "postgres",
-    "password": "1011"
-}
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
 
 
-def get_connection():
-    return psycopg2.connect(**DB_CONFIG)
+# Load variables from .env
+load_dotenv()
+
+
+# Read database credentials
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+
+def get_engine():
+    connection_url = (
+        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
+        f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
+
+    engine = create_engine(connection_url)
+    return engine
 
 
 if __name__ == "__main__":
     try:
-        conn = get_connection()
-        print("PostgreSQL connection successful!")
-        conn.close()
+        engine = get_engine()
+
+        with engine.connect() as connection:
+            result = connection.execute(
+                text("SELECT PostGIS_Version();")
+            )
+
+            postgis_version = result.scalar()
+
+        print(f"Connected! PostGIS version: {postgis_version}")
+
     except Exception as e:
-        print("PostgreSQL connection failed:")
+        print("Database connection failed:")
         print(e)
