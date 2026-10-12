@@ -676,12 +676,28 @@ def classify_imagery(
 # ------------------------------------------------------------
 
 if __name__ == "__main__":
+    # Additional Guwahati test locations for Fig. 2
 
-    # Guwahati test coordinate
-    # Located inside the project study-area bounds.
+    test_locations = [
+        {
+            "name": "Additional Location 1",
+            "lat": 26.1800,
+            "lon": 91.7700,
+        },
+        {
+            "name": "Additional Location 2",
+            "lat": 26.1200,
+            "lon": 91.8000,
+        },
+    ]
 
-    result = classify_imagery(
-    26.2314800,
-    91.8962612,
-    radius_m=500
-)
+    for location in test_locations:
+        print("\n" + "=" * 70)
+        print("TEST LOCATION:", location["name"])
+        print("=" * 70)
+
+        result = classify_imagery(
+            lat=location["lat"],
+            lon=location["lon"],
+            radius_m=500,
+        )

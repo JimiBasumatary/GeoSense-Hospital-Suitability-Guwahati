@@ -1,85 +1,52 @@
-# ============================================================
-# Environment and secrets
-# ============================================================
-
+# GeoSense Agent Git exclusions
 .env
 .env.*
 !.env.example
-
-
-# ============================================================
-# Python cache and temporary files
-# ============================================================
-
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
+venv/
 .pytest_cache/
-*.pyo
-
-
-# ============================================================
-# Windows / editor temporary files
-# ============================================================
-
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
 *.tmp
-*.bak
-*.swp
-~$*
-*.py.txt
-import os.txt
-
-
-# ============================================================
-# Large/raw GIS datasets
-# ============================================================
-
+*.temp
+integration_output.txt
+data/satellite/
 data/raw/
-data/population/
-data/shapefiles/
-
-
-# ============================================================
-# PostgreSQL local database / backups
-# ============================================================
-
-postgres_backup/
-
-
-# ============================================================
-# Generated GIS and ML outputs
-# ============================================================
-
-data/outputs/
 data/processed/
-outputs/
-models/saved/
-
-
-# ============================================================
-# Large GIS files
-# ============================================================
-
-*.gpkg
+data/population/
 *.tif
 *.tiff
 *.img
+*.jp2
+*.vrt
+*.nc
 *.hdf
 *.h5
-*.nc
-
-
-# ============================================================
-# Large exported files
-# ============================================================
-
 *.zip
 *.7z
-*.rar
-
-
-# ============================================================
-# Local IDE settings
-# ============================================================
-
-.vscode/
-.idea/
+*.gpkg
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.qix
+*.gdb/
+models/saved/
+*.pth
+*.pt
+*.ckpt
+*.onnx
+*.safetensors
+outputs/
+*.sqlite
+*.sqlite3
+*.db
