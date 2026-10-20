@@ -1,0 +1,59 @@
+
+{
+  "info": {
+    "name": "GeoSense Phase IV MCP Server",
+    "description": "Smoke tests for the seven GeoSense MCP tools exposed through Streamable HTTP.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "MCP Initialize",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},\"clientInfo\":{\"name\":\"GeoSense Postman\",\"version\":\"1.0.0\"}}}"
+        },
+        "url": {
+          "raw": "{{mcp_url}}",
+          "host": ["{{mcp_url}}"]
+        }
+      }
+    },
+    {
+      "name": "MCP Tools List",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Accept", "value": "application/json, text/event-stream"},
+          {"key": "MCP-Protocol-Version", "value": "2025-03-26"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}"
+        },
+        "url": {
+          "raw": "{{mcp_url}}",
+          "host": ["{{mcp_url}}"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "mcp_url",
+      "value": "http://127.0.0.1:8002/mcp/"
+    }
+  ]
+}
