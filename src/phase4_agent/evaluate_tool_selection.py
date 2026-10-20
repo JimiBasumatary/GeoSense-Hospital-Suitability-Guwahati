@@ -1,4 +1,5 @@
-﻿"""Compare three prompt styles for GeoSense MCP tool selection.
+﻿
+"""Compare three prompt styles for GeoSense MCP tool selection.
 
 Selection only: this script never executes an MCP tool.
 Run from the project root with the Phase IV environment active.
@@ -10,7 +11,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from src.phase4_agent import geoai_agent as agent_module
-
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -63,8 +63,22 @@ def response_text(response):
     return str(content)
 
 
-def selected_names(text, available_names):
-    """Find exact available tool names mentioned in a model response."""
+def selected_names(text, available_names, style=None):
+    """Extract selected tools; require valid JSON for the described style."""
+    if style == "described":
+        try:
+            data = json.loads(text)
+        except (json.JSONDecodeError, TypeError):
+            return []
+
+        selected = data.get("tools") if isinstance(data, dict) else None
+        if not isinstance(selected, list):
+            return []
+        return [
+            name for name in selected
+            if isinstance(name, str) and name in available_names
+        ]
+
     return [name for name in available_names if name in text]
 
 
@@ -87,95 +101,75 @@ def build_prompt(style, question, tools):
             "Do not include tools that are not needed."
         )
 
-    descriptions = "\n".join(
-        f"- {tool['name']}: {tool.get('description', '')}"
-        for tool in tools
-    )
-    return (
-        "You select MCP tools for a geospatial analysis agent.\n"
-        f"Question: {question}\n"
-        f"Tool catalogue:\n{descriptions}\n"
-        "Choose only the tools required to answer the question. "
-        "Return only valid JSON in this format: "
-        '{"tools": ["exact_tool_name"]}'
-    )
+    if style == "described":
+        descriptions = "\n".join(
+            f"- {tool['name']}: {tool.get('description', '')}"
+            for tool in tools
+        )
+        return (
+            "You select MCP tools for a geospatial analysis agent.\n"
+            f"Question: {question}\n"
+            f"Tool catalogue:\n{descriptions}\n"
+            "Choose only the tools required to answer the question. "
+            "Return only valid JSON in this format: "
+            '{"tools": ["exact_tool_name"]}'
+        )
+
+    raise ValueError(f"Unknown prompt style: {style}")
 
 
-def evaluate():
-    tools = asyncio.run(agent_module.get_tools())
-    available_names = [tool["name"] for tool in tools]
-    results = []
+def is_quota_error(exc):
+    """Recognize common provider quota/rate-limit failures."""
+    message = f"{type(exc).__name__}: {exc}".lower()
+    return any(term in message for term in (
+        "resource_exhausted",
+        "quota exceeded",
+        "rate limit",
+        "too many requests",
+        "429",
+    ))
 
-    print(f"Discovered {len(tools)} tools.")
-    print("Selection-only evaluation: no MCP tools will be executed.")
-    print("This run makes up to 18 model calls; API quota may limit it.")
 
-    for scenario in SCENARIOS:
-        for style in PROMPT_STYLES:
-            print(f"Evaluating {scenario['id']} / {style} ...")
-            row = {
-                "scenario": scenario["id"],
-                "prompt_style": style,
-                "question": scenario["question"],
-                "expected_tools": scenario["expected"],
-                "selected_tools": [],
-                "status": "ERROR",
-                "input_tokens": None,
-                "output_tokens": None,
-                "total_tokens": None,
-                "error": None,
-                "raw_response": "",
-            }
+def make_row(scenario, style, status="ERROR"):
+    return {
+        "scenario": scenario["id"],
+        "prompt_style": style,
+        "question": scenario["question"],
+        "expected_tools": scenario["expected"],
+        "selected_tools": [],
+        "status": status,
+        "input_tokens": None,
+        "output_tokens": None,
+        "total_tokens": None,
+        "error": None,
+        "raw_response": "",
+    }
 
-            try:
-                response = agent_module.model.invoke(
-                    build_prompt(style, scenario["question"], tools)
-                )
-                text = response_text(response).strip()
-                usage = agent_module.extract_token_usage(response)
 
-                row["raw_response"] = text
-                row["input_tokens"] = usage.get("input_tokens")
-                row["output_tokens"] = usage.get("output_tokens")
-                row["total_tokens"] = usage.get("total_tokens")
-                row["selected_tools"] = selected_names(text, available_names)
-
-                expected = set(scenario["expected"])
-                selected = set(row["selected_tools"])
-
-                if expected == selected:
-                    row["status"] = "MATCH"
-                elif expected.issubset(selected):
-                    row["status"] = "EXTRA"
-                else:
-                    row["status"] = "MISSED"
-
-            except Exception as exc:
-                row["error"] = f"{type(exc).__name__}: {exc}"
-                print(f"  Model call failed: {row['error']}")
-
-            results.append(row)
-            print(
-                f"  Expected={row['expected_tools']} "
-                f"Selected={row['selected_tools']} Status={row['status']}"
-            )
-
+def save_results(tools, results):
     output_dir = ROOT / "outputs" / "evaluation"
     output_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
     json_path = output_dir / f"tool_selection_{stamp}.json"
     csv_path = output_dir / f"tool_selection_{stamp}.csv"
 
+    summary = {}
+    for style in PROMPT_STYLES:
+        subset = [r for r in results if r["prompt_style"] == style]
+        summary[style] = {
+            status: sum(r["status"] == status for r in subset)
+            for status in ("MATCH", "EXTRA", "MISSED", "ERROR", "SKIPPED")
+        }
+
     json_path.write_text(
-        json.dumps(
-            {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "available_tools": tools,
-                "method": "Selection only; no MCP tool execution",
-                "results": results,
-            },
-            indent=2,
-        ),
+        json.dumps({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "available_tools": tools,
+            "method": "Selection only; no MCP tool execution",
+            "summary": summary,
+            "results": results,
+        }, indent=2),
         encoding="utf-8",
     )
 
@@ -187,23 +181,86 @@ def evaluate():
     with csv_path.open("w", newline="", encoding="utf-8-sig") as handle:
         writer = csv.DictWriter(handle, fieldnames=columns)
         writer.writeheader()
-        for row in results:
-            row = row.copy()
+        for original in results:
+            row = original.copy()
             row["expected_tools"] = json.dumps(row["expected_tools"])
             row["selected_tools"] = json.dumps(row["selected_tools"])
             writer.writerow(row)
 
     print("\nSUMMARY")
-    for style in PROMPT_STYLES:
-        subset = [r for r in results if r["prompt_style"] == style]
-        counts = {
-            status: sum(r["status"] == status for r in subset)
-            for status in ("MATCH", "EXTRA", "MISSED", "ERROR")
-        }
+    for style, counts in summary.items():
         print(f"{style}: {counts}")
-
     print(f"\nJSON results: {json_path}")
     print(f"CSV results:  {csv_path}")
+
+
+def evaluate():
+    tools = asyncio.run(agent_module.get_tools())
+    available_names = [tool["name"] for tool in tools]
+    cases = [
+        (scenario, style)
+        for scenario in SCENARIOS
+        for style in PROMPT_STYLES
+    ]
+    results = []
+
+    print(f"Discovered {len(tools)} tools.")
+    print("Selection-only evaluation: no MCP tools will be executed.")
+    print(f"Planned model calls: {len(cases)}.")
+
+    quota_exhausted = False
+
+    for index, (scenario, style) in enumerate(cases):
+        print(f"Evaluating {scenario['id']} / {style} ...")
+        row = make_row(scenario, style)
+
+        try:
+            response = agent_module.model.invoke(
+                build_prompt(style, scenario["question"], tools)
+            )
+            text = response_text(response).strip()
+            usage = agent_module.extract_token_usage(response)
+
+            row["raw_response"] = text
+            row["input_tokens"] = usage.get("input_tokens")
+            row["output_tokens"] = usage.get("output_tokens")
+            row["total_tokens"] = usage.get("total_tokens")
+            row["selected_tools"] = selected_names(
+                text, available_names, style
+            )
+
+            expected = set(scenario["expected"])
+            selected = set(row["selected_tools"])
+
+            if expected == selected:
+                row["status"] = "MATCH"
+            elif expected.issubset(selected):
+                row["status"] = "EXTRA"
+            else:
+                row["status"] = "MISSED"
+
+        except Exception as exc:
+            row["error"] = f"{type(exc).__name__}: {exc}"
+            print(f"  Model call failed: {row['error']}")
+            quota_exhausted = is_quota_error(exc)
+
+        results.append(row)
+        print(
+            f"  Expected={row['expected_tools']} "
+            f"Selected={row['selected_tools']} Status={row['status']}"
+        )
+
+        if quota_exhausted:
+            print("Quota/rate limit detected; skipping remaining model calls.")
+            for remaining_scenario, remaining_style in cases[index + 1:]:
+                skipped = make_row(
+                    remaining_scenario, remaining_style, status="SKIPPED"
+                )
+                skipped["error"] = "Not attempted after quota/rate-limit error."
+                results.append(skipped)
+            break
+
+    save_results(tools, results)
 
 
 if __name__ == "__main__":
