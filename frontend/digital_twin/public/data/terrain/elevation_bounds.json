@@ -1,0 +1,14 @@
+{
+  "image": "elevation_preview.png",
+  "west": 91.62908224819746,
+  "south": 25.997078123225993,
+  "east": 92.1788520840109,
+  "north": 26.25649496781374,
+  "source": "guwahati_elevation_clipped.tif",
+  "valid_min_m": 22.0,
+  "valid_max_m": 743.0,
+  "display_stretch_percentiles": [
+    2,
+    98
+  ]
+}

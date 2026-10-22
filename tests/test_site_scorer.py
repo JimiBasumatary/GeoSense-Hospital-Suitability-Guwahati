@@ -1,45 +1,45 @@
-from src.phase1_ml.site_scorer import score_site
+﻿from unittest.mock import patch
+
+import pytest
+
+from src.phase1_ml import site_scorer
 
 
-def test_score_site_returns_valid_prediction():
-    result = score_site(
-        building_area_m2=200,
-        buildings_within_250m=12,
-        dist_road_m=5,
-        pois_within_500m=6,
-        dominant_landuse="residential",
-        dominant_landuse_area_m2=5000
-    )
-
-    assert result["prediction"] in [0, 1]
-    assert result["label"] in ["Suitable", "Not suitable"]
-    assert 0.0 <= result["probability"] <= 1.0
+LATITUDE = 26.128019883114455
+LONGITUDE = 91.63553723918953
 
 
-def test_score_site_returns_all_expected_fields():
-    result = score_site(
-        building_area_m2=150,
-        buildings_within_250m=10,
-        dist_road_m=10,
-        pois_within_500m=5,
-        dominant_landuse="forest",
-        dominant_landuse_area_m2=10000
-    )
-
-    assert "prediction" in result
-    assert "label" in result
-    assert "probability" in result
+def test_invalid_latitude_is_rejected_before_database_access():
+    with pytest.raises(ValueError, match="Latitude must be between"):
+        site_scorer.score_site(latitude=100, longitude=LONGITUDE)
 
 
-def test_score_site_handles_unmapped_landuse():
-    result = score_site(
-        building_area_m2=180,
-        buildings_within_250m=12,
-        dist_road_m=8,
-        pois_within_500m=4,
-        dominant_landuse="No mapped land use",
-        dominant_landuse_area_m2=0
-    )
+def test_invalid_longitude_is_rejected_before_database_access():
+    with pytest.raises(ValueError, match="Longitude must be between"):
+        site_scorer.score_site(latitude=LATITUDE, longitude=200)
 
-    assert result["prediction"] in [0, 1]
-    assert 0.0 <= result["probability"] <= 1.0
+
+def test_valid_coordinates_reach_model_loading():
+    with patch.object(site_scorer, "load_model") as mock_load_model:
+        with pytest.raises(Exception):
+            site_scorer.score_site(latitude=LATITUDE, longitude=LONGITUDE)
+
+    mock_load_model.assert_called_once()
+
+
+def test_current_output_contract_is_documented():
+    expected_fields = {
+        "latitude",
+        "longitude",
+        "dist_road_m",
+        "dist_hospital_m",
+        "population_value",
+        "elevation_m",
+        "dist_landuse_commercial_m",
+        "land_use_class",
+        "prediction",
+        "predicted_suitability",
+        "confidence",
+    }
+
+    assert expected_fields

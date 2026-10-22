@@ -1,0 +1,47 @@
+{
+  "2015": {
+    "image": "ndvi_2015.png",
+    "crs": "GEOGCS[\"WGS 84\",DATUM[\"World Geodetic System 1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]",
+    "west": 91.63013527381625,
+    "south": 25.99949011062925,
+    "east": 92.1783770917144,
+    "north": 26.255060808961254,
+    "width": 2048,
+    "height": 955,
+    "display_range": [
+      -0.2,
+      0.8
+    ],
+    "note": "Display-stretched NDVI overlay; original GeoTIFF retained."
+  },
+  "2023": {
+    "image": "ndvi_2023.png",
+    "crs": "GEOGCS[\"WGS 84\",DATUM[\"World Geodetic System 1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]",
+    "west": 91.63013527381625,
+    "south": 25.99949011062925,
+    "east": 92.1783770917144,
+    "north": 26.255060808961254,
+    "width": 2048,
+    "height": 955,
+    "display_range": [
+      -0.2,
+      0.8
+    ],
+    "note": "Display-stretched NDVI overlay; original GeoTIFF retained."
+  },
+  "2021": {
+    "image": "ndvi_2021.png",
+    "crs": "EPSG:4326",
+    "west": 91.63013527381625,
+    "south": 25.99949011062925,
+    "east": 92.1783770917144,
+    "north": 26.255060808961254,
+    "width": 2048,
+    "height": 955,
+    "display_range": [
+      -0.2,
+      0.8
+    ],
+    "note": "Display-stretched NDVI overlay derived from the 2021 processed Sentinel-2 composite."
+  }
+}

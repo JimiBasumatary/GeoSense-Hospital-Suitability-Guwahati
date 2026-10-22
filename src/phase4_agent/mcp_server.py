@@ -1,4 +1,4 @@
-"""GeoSense Phase IV: FastAPI REST API and MCP Streamable HTTP server."""
+﻿"""GeoSense Phase IV: FastAPI REST API and MCP Streamable HTTP server."""
 
 import logging
 import sys
@@ -6,6 +6,9 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from src.phase4_agent.agent_result_store import get_latest_result
+
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
@@ -39,6 +42,19 @@ app = FastAPI(
         "climate, demographics, and nearby candidate-site search."
     ),
     version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 mcp = MCPServer(
@@ -352,6 +368,16 @@ def streetview_result(
         "scene_analyzed": False,
         "scene_description": None,
     }
+
+
+@app.get("/agent/latest_result")
+def agent_latest_result():
+    """Return the latest result published by the GeoSense agent."""
+    result = get_latest_result()
+    if result is None:
+        return {"status": "empty", "result": None}
+    return {"status": "ok", "result": result}
+
 # ============================================================
 # FASTAPI REST ENDPOINTS
 # ============================================================
@@ -644,3 +670,4 @@ app.mount(
         streamable_http_path="/"
     ),
 )
+

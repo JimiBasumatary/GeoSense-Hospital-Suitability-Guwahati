@@ -1,0 +1,291 @@
+
+/* =========================================
+   GeoSense Digital Twin - Phase IV
+   Main stylesheet
+   ========================================= */
+
+/* Global reset */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #101827;
+  color: #f8fafc;
+  overflow: hidden;
+}
+
+/* Main application layout */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Header */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: #172235;
+  border-bottom: 1px solid #334155;
+  z-index: 2;
+}
+
+.topbar h1 {
+  margin: 0 0 5px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.topbar p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Prototype status label */
+.status {
+  display: inline-block;
+  padding: 7px 12px;
+  border: 1px solid #475569;
+  border-radius: 20px;
+  color: #86efac;
+  background: #1e293b;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Study-area information panel */
+.info-panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 12px 24px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  color: #e2e8f0;
+  font-size: 13px;
+  line-height: 1.5;
+  z-index: 1;
+}
+
+.info-panel strong {
+  color: #ffffff;
+}
+
+.coordinates {
+  color: #94a3b8;
+}
+
+/* CesiumJS globe container */
+#cesiumContainer {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 300px;
+  overflow: hidden;
+  background: #0b1220;
+}
+
+/* Ensure Cesium fills its container */
+#cesiumContainer .cesium-viewer,
+#cesiumContainer .cesium-viewer-cesiumWidgetContainer,
+#cesiumContainer .cesium-widget,
+#cesiumContainer canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Cesium navigation controls */
+#cesiumContainer .cesium-viewer-toolbar {
+  top: 10px;
+  right: 10px;
+}
+
+/* Footer */
+.footer {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  background: #172235;
+  border-top: 1px solid #334155;
+  color: #cbd5e1;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Error message */
+.error {
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #7f1d1d;
+  border-radius: 8px;
+  background: #450a0a;
+  color: #fecaca;
+}
+
+.error h2 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.error p {
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* Responsive layout for smaller screens */
+@media (max-width: 600px) {
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .topbar h1 {
+    font-size: 20px;
+  }
+
+  .info-panel {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px 16px;
+  }
+
+  #cesiumContainer {
+    min-height: 250px;
+  }
+
+  .footer {
+    padding: 9px 12px;
+  }
+}
+
+/* Live agent result panel */
+.agent-panel {
+  flex: 0 0 auto;
+  padding: 12px 24px;
+  background: #111c2e;
+  border-bottom: 1px solid #334155;
+  color: #e2e8f0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.agent-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
+.agent-panel p {
+  margin: 5px 0;
+  overflow-wrap: anywhere;
+}
+
+#agent-status {
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#agent-status.connected {
+  color: #86efac;
+}
+
+.agent-note {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .agent-panel {
+    padding: 10px 16px;
+  }
+
+  .agent-panel-heading {
+    align-items: flex-start;
+  }
+}
+
+.ndvi-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f4f7fa;
+  color: #183247;
+  border-bottom: 1px solid #cbd5df;
+  font-size: 14px;
+}
+
+.ndvi-controls select {
+  padding: 6px 10px;
+  border: 1px solid #9aaaba;
+  border-radius: 4px;
+  background: white;
+}
+
+.ndvi-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+#ndvi-status {
+  font-size: 12px;
+}
+
+
+/* Exercise 4: building layer controls */
+.building-controls {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  color: #f4f7fa;
+  background: #172b3a;
+  font-size: 13px;
+}
+
+.building-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.building-controls input {
+  accent-color: #e9a23b;
+}
+
+#buildings-status {
+  color: #c4d2dd;
+}

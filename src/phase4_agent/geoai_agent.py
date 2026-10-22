@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
+from src.phase4_agent.agent_result_store import publish_result
+
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
@@ -232,6 +234,7 @@ def save_transcript(question: str, thread_id: str, result: dict):
         "selected_tools": result.get("selected_tools", []),
         "tool_results": result.get("tool_results", []),
         "answer": result.get("answer", ""),
+        "error": result.get("error"),
         "token_usage": result.get("token_usage"),
     }
 
@@ -242,13 +245,39 @@ def save_transcript(question: str, thread_id: str, result: dict):
 
 
 def run_agent(question: str, thread_id: str = "default"):
+    """Run the agent and log both successful and failed attempts."""
     config = {"configurable": {"thread_id": thread_id}}
-    result = agent.invoke({"question": question}, config=config)
+
+    try:
+        result = agent.invoke({"question": question}, config=config)
+    except Exception as exc:
+        error_message = (
+            f"Agent execution failed ({type(exc).__name__}). "
+            "The language model or another agent component was unavailable. "
+            "No successful analysis can be reported; please retry later."
+        )
+        result = {
+            "question": question,
+            "location": DEMO_LOCATION,
+            "selected_tools": [],
+            "tool_results": [],
+            "answer": error_message,
+            "error": f"{type(exc).__name__}: {exc}",
+            "token_usage": {},
+        }
+        print(f"GeoAI agent error: {type(exc).__name__}: {exc}")
+
+    try:
+        publish_result(question, thread_id, result)
+    except Exception as exc:
+        print(f"Latest-result publishing warning: {type(exc).__name__}: {exc}")
+
     try:
         transcript_path = save_transcript(question, thread_id, result)
         print(f"Transcript saved: {transcript_path}")
     except Exception as exc:
         print(f"Transcript logging warning: {type(exc).__name__}: {exc}")
+
     return result
 
 

@@ -1,0 +1,11 @@
+{
+  "image": "slope_preview.png",
+  "west": 91.62908224819746,
+  "south": 25.997078123225993,
+  "east": 92.1788520840109,
+  "north": 26.25649496781374,
+  "source": "guwahati_slope_degrees.tif",
+  "valid_min_degrees": 0.0,
+  "valid_max_degrees": 80.85464477539062,
+  "display_max_degrees": 30.423683166503906
+}
